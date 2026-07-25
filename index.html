@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Smart Client Reply</title>
+<style>
+  :root{
+    --bg:#0b0d09;
+    --surface:#14170f;
+    --surface2:#1b1f14;
+    --line:#2a2f20;
+    --accent:#a6ff3d;
+    --accent-dim:#5f9b2a;
+    --text:#edede3;
+    --muted:#8a8f7e;
+    --danger:#ff5a3c;
+    --warn:#ffcc4d;
+    --font-display: 'Oswald', 'Arial Narrow', sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(ellipse at top left, #10130c 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:var(--font-body);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  a,button{font-family:inherit;}
+  button{cursor:pointer;}
+  ::-webkit-scrollbar{height:6px;width:6px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px;}
+
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;
+    border-bottom:2px solid var(--accent);
+    background:var(--surface);
+    position:sticky;top:0;z-index:20;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{
+    width:34px;height:34px;border:2px solid var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-weight:600;color:var(--accent);
+    transform:rotate(-4deg);flex-shrink:0;
+  }
+  .brand-text h1{
+    font-family:var(--font-display);font-size:17px;letter-spacing:1px;
+    margin:0;text-transform:uppercase;color:var(--text);
+  }
+  .brand-text span{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter-spacing:0.5px;}
+  .icon-btn{
+    background:transparent;border:1px solid var(--line);color:var(--muted);
+    width:36px;height:36px;border-radius:6px;font-size:16px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  nav.tabs{
+    display:flex;gap:2px;background:var(--surface);
+    border-bottom:1px solid var(--line);
+    position:sticky;top:63px;z-index:19;
+    overflow-x:auto;
+  }
+  nav.tabs button{
+    flex:1;min-width:74px;background:transparent;border:none;color:var(--muted);
+    font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.8px;text-transform:uppercase;
+    padding:12px 4px;border-bottom:2px solid transparent;white-space:nowrap;
+  }
+  nav.tabs button.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  main{max-width:760px;margin:0 auto;padding:16px;padding-bottom:60px;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:16px;margin-bottom:14px;
+  }
+  .card h2{
+    font-family:var(--font-display);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;
+    color:var(--accent);margin:0 0 12px 0;
+  }
+  .card p.hint{font-size:12.5px;color:var(--muted);margin:0 0 12px 0;}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-family:var(--font-mono);}
+  input[type=text],input[type=tel],textarea,select{
+    width:100%;background:var(--surface2);border:1px solid var(--line);color:var(--text);
+    border-radius:7px;padding:10px 11px;font-size:14.5px;font-family:var(--font-body);
+    margin-bottom:12px;
+  }
+  textarea{resize:vertical;min-height:100px;line-height:1.4;}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:0;}
+
+  .btn{
+    background:var(--accent);color:#0b0d09;border:none;border-radius:7px;
+    padding:12px 18px;font-weight:700;font-size:14px;letter-spacing:0.3px;
+    width:100%;
+  }
+  .btn:disabled{opacity:0.5;}
+  .btn.secondary{background:transparent;border:1px solid var(--line);color:var(--text);width:auto;}
+  .btn.secondary:hover{border-color:var(--accent);color:var(--accent);}
+  .btn.small{width:auto;padding:8px 12px;font-size:12.5px;}
+  .btn.ghost{background:transparent;border:1px dashed var(--line);color:var(--muted);width:auto;}
+
+  .row{display:flex;gap:8px;flex-wrap:wrap;}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;
+    font-family:var(--font-mono);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;
+    border:1px solid var(--line);
+  }
+  .badge.calm,.badge.neutral{color:#9fe870;border-color:#3f5c2a;}
+  .badge.confused{color:var(--warn);border-color:#5c4f2a;}
+  .badge.urgent{color:#ffa64d;border-color:#5c3f2a;}
+  .badge.frustrated,.badge.angry{color:var(--danger);border-color:#5c2a2a;}
+  .badge.tone{color:var(--accent);border-color:var(--accent-dim);}
+  .badge.tag{color:#8fc7ff;border-color:#2a4a5c;}
+  .badge.happy{color:#9fe870;border-color:#3f5c2a;}
+  .badge.upset{color:var(--danger);border-color:#5c2a2a;}
+
+  .error-banner{
+    background:#241111;border:1px solid var(--danger);color:#ffb3a3;
+    padding:12px 14px;border-radius:8px;font-size:13.5px;margin-bottom:14px;
+  }
+  .error-banner b{color:var(--danger);}
+
+  .ticket{
+    background:var(--surface);
+    border:1px dashed var(--line);
+    border-radius:4px;
+    padding:0;
+    margin-top:6px;
+    position:relative;
+  }
+  .ticket-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:10px 14px;border-bottom:1px dashed var(--line);
+    font-family:var(--font-mono);font-size:10.5px;color:var(--muted);letter-spacing:0.5px;
+  }
+  .ticket-stamp{
+    color:var(--accent);border:1.5px solid var(--accent);border-radius:4px;padding:1px 7px;
+    transform:rotate(-3deg);font-weight:600;
+  }
+  .ticket-body{padding:14px;}
+  .ticket-section{margin-bottom:14px;}
+  .ticket-section:last-child{margin-bottom:0;}
+  .ticket-label{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block;}
+  .reply-box{
+    background:var(--surface2);border:1px solid var(--line);border-radius:7px;
+    padding:12px;font-size:14.5px;line-height:1.5;white-space:pre-wrap;
+    min-height:60px;
+  }
+  .reply-box[contenteditable=true]:focus{outline:1px solid var(--accent);}
+
+  .tone-tabs{display:flex;gap:6px;margin-bottom:8px;}
+  .tone-tab{
+    flex:1;background:var(--surface2);border:1px solid var(--line);color:var(--muted);
+    padding:8px 4px;border-radius:6px;font-size:12px;font-family:var(--font-mono);text-transform:uppercase;
+  }
+  .tone-tab.active{border-color:var(--accent);color:var(--accent);}
+
+  .chip{
+    background:var(--surface2);border:1px solid var(--line);color:var(--text);
+    padding:6px 11px;border-radius:20px;font-size:12.5px;
+  }
+  .chip:hover{border-color:var(--accent);color:var(--accent);}
+  .chip.action{border-color:var(--accent-dim);}
+
+  .price-card{
+    border:1px solid var(--accent-dim);background:#131a0d;border-radius:8px;padding:12px;margin-top:10px;
+  }
+  .price-card .service{font-family:var(--font-mono);color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+  .outcome-row{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;}
+  .outcome-row span{font-size:11.5px;color:var(--muted);font-family:var(--font-mono);}
+
+  .cust-list{display:flex;flex-direction:column;gap:8px;}
+  .cust-card{
+    background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px;
+  }
+  .cust-card.selected{border-color:var(--accent);}
+  .cust-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .cust-name{font-weight:700;font-size:14.5px;}
+  .cust-contact{font-family:var(--font-mono);font-size:11.5px;color:var(--muted);}
+  .cust-notes{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;}
+  .note-chip{
+    background:var(--surface);border:1px solid var(--line);border-radius:5px;
+    padding:3px 8px;font-size:11px;color:var(--muted);
+  }
+  .profile-box{
+    display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
+    font-size:12.5px;color:var(--text);
+  }
+  .profile-box.open{display:block;}
+  .profile-row{margin-bottom:6px;}
+  .profile-row b{color:var(--accent);font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;}
+  .empty{color:var(--muted);font-size:13.5px;text-align:center;padding:26px 10px;}
+
+  .tmpl-card{
+    background:var(--surface2);border:1px solid var(--line);border-radius:8px;
+    padding:12px;margin-bottom:10px;
+  }
+  .tmpl-title{font-weight:700;font-size:13.5px;margin-bottom:6px;}
+  .tmpl-text{font-size:12.5px;color:var(--muted);white-space:pre-wrap;margin-bottom:10px;}
+
+  .hist-filter{margin-bottom:10px;}
+  .hist-item{
+    border-bottom:1px dashed var(--line);padding:12px 2px;
+  }
+  .hist-item:last-child{border-bottom:none;}
+  .hist-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .hist-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+  .hist-msg{font-size:13px;color:var(--muted);margin-bottom:4px;}
+  .hist-reply{font-size:13px;}
+
+  .insight-stat{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:8px 0;border-bottom:1px dashed var(--line);
+  }
+  .insight-stat:last-child{border-bottom:none;}
+  .insight-stat .num{font-family:var(--font-mono);font-size:20px;color:var(--accent);font-weight:600;}
+  .insight-stat .label{font-size:12.5px;color:var(--muted);}
+  .bar-row{margin-bottom:10px;}
+  .bar-row .bar-label{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;}
+  .bar-track{background:var(--surface2);border-radius:4px;height:8px;overflow:hidden;}
+  .bar-fill{background:var(--accent);height:100%;border-radius:4px;}
+
+  .overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:50;
+    align-items:flex-end;justify-content:center;
+  }
+  .overlay.active{display:flex;}
+  .modal{
+    background:var(--surface);border-top:2px solid var(--accent);border-radius:14px 14px 0 0;
+    width:100%;max-width:760px;padding:18px 16px 24px;max-height:85vh;overflow-y:auto;
+  }
+  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .modal-head h3{font-family:var(--font-display);text-transform:uppercase;letter-spacing:1px;font-size:15px;margin:0;color:var(--text);}
+
+  .spinner{
+    width:16px;height:16px;border:2px solid rgba(0,0,0,0.3);border-top-color:#0b0d09;
+    border-radius:50%;display:inline-block;animation:spin 0.7s linear infinite;vertical-align:-3px;margin-right:6px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .toast{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+    background:var(--accent);color:#0b0d09;padding:9px 16px;border-radius:20px;
+    font-size:13px;font-weight:700;z-index:60;opacity:0;pointer-events:none;transition:opacity 0.2s;
+    max-width:90%;text-align:center;
+  }
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">SC</div>
+    <div class="brand-text">
+      <h1 id="bizNameHeader">Smart Client Reply</h1>
+      <span id="bizSubHeader">Dispatch Desk</span>
+    </div>
+  </div>
+  <button class="icon-btn" onclick="openSettings()" aria-label="Business settings">&#9881;</button>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="replyView" onclick="switchTab('replyView',this)">Reply</button>
+  <button class="tab-btn" data-view="customersView" onclick="switchTab('customersView',this)">Customers</button>
+  <button class="tab-btn" data-view="templatesView" onclick="switchTab('templatesView',this)">Templates</button>
+  <button class="tab-btn" data-view="historyView" onclick="switchTab('historyView',this)">History</button>
+  <button class="tab-btn" data-view="insightsView" onclick="switchTab('insightsView',this)">Insights</button>
+</nav>
+
+<main>
+
+  <section id="replyView" class="view active">
+    <div class="card">
+      <h2>Customer message</h2>
+      <label for="custSelect">Customer (optional)</label>
+      <select id="custSelect" onchange="onCustomerSelect(this.value)">
+        <option value="">No customer selected</option>
+      </select>
+
+      <label for="msgInput">Paste their message</label>
+      <textarea id="msgInput" oninput="onMsgInput()" placeholder="e.g. Hey, can you come by tomorrow instead of Thursday? Also how much for edging?"></textarea>
+
+      <button class="btn" id="genBtn" onclick="generateReply()">Generate Reply</button>
+    </div>
+
+    <div id="errorSlot"></div>
+    <div id="resultSlot"></div>
+  </section>
+
+  <section id="customersView" class="view">
+    <div class="card">
+      <h2>Import from Base44</h2>
+      <p class="hint">Pulls your customer roster (name, phone, service frequency, price, notes) from LawnFlow. Skips anyone already added here by name.</p>
+      <button class="btn secondary" onclick="importBase44Customers()">Import Base44 customers</button>
+    </div>
+    <div class="card">
+      <h2>Add customer</h2>
+      <label for="newCustName">Name</label>
+      <input type="text" id="newCustName" placeholder="Bianca">
+      <label for="newCustContact">Contact info (optional)</label>
+      <input type="text" id="newCustContact" placeholder="Phone or email">
+      <button class="btn secondary" onclick="addCustomer()">+ Add customer</button>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h2 style="margin:0;">Your customers</h2>
+        <button class="btn small secondary" onclick="exportCustomerNotesCSV()">Export notes (CSV)</button>
+      </div>
+      <div id="custList" class="cust-list"></div>
+    </div>
+  </section>
+
+  <section id="templatesView" class="view">
+    <div class="card">
+      <h2>Saved templates</h2>
+      <div id="tmplList"></div>
+    </div>
+  </section>
+
+  <section id="historyView" class="view">
+    <div class="card">
+      <h2>Last 20 replies</h2>
+      <div class="hist-filter">
+        <label for="histTagFilter">Filter by tag</label>
+        <select id="histTagFilter" onchange="renderHistory()">
+          <option value="">All tags</option>
+          <option value="pricing">Pricing</option>
+          <option value="complaint">Complaint</option>
+          <option value="general_info">General info</option>
+          <option value="new_customer">New customer</option>
+          <option value="scheduling">Scheduling</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div id="histList"></div>
+    </div>
+  </section>
+
+  <section id="insightsView" class="view">
+    <div class="card">
+      <h2>Overview</h2>
+      <div id="insightOverview"></div>
+    </div>
+    <div class="card">
+      <h2>Most common requests</h2>
+      <div id="insightTags"></div>
+    </div>
+    <div class="card">
+      <h2>Customer sentiment trend</h2>
+      <div id="insightSentiment"></div>
+    </div>
+    <div class="card">
+      <h2>Upsell rate</h2>
+      <p class="hint">Based on outcomes you log with the check/x buttons on price quotes, not guessed.</p>
+      <div id="insightUpsell"></div>
+    </div>
+  </section>
+
+</main>
+
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Business info</h3>
+      <button class="icon-btn" onclick="closeSettings()">&#10005;</button>
+    </div>
+    <label for="setName">Business name</label>
+    <input type="text" id="setName" placeholder="Joe's Mows LLC">
+    <label for="setPhone">Phone number</label>
+    <input type="tel" id="setPhone" placeholder="(325) 555-0123">
+    <label for="setArea">Service area</label>
+    <input type="text" id="setArea" placeholder="San Angelo & surrounding areas">
+    <button class="btn" onclick="saveSettings()">Save</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+async function storGet(key, fallback){
+  try{
+    const raw = localStorage.getItem('scr_'+key);
+    return raw ? JSON.parse(raw) : fallback;
+  }catch(e){ return fallback; }
+}
+async function storSet(key, value){
+  try{ localStorage.setItem('scr_'+key, JSON.stringify(value)); }
+  catch(e){ console.error('storage set failed', e); }
+}
+
+let settings = { name:'', phone:'', area:'' };
+let customers = [];
+let templates = [];
+let history = [];
+let activeCustomerId = '';
+let currentResult = null;
+let activeToneKey = 'reply_professional';
+let msgStartTime = null;
+
+const TAG_LABELS = { pricing:'Pricing', complaint:'Complaint', general_info:'General info', new_customer:'New customer', scheduling:'Scheduling', other:'Other' };
+
+const DEFAULT_SETTINGS = {
+  name: "Joe's Mows LLC",
+  phone: "(325) 232-4474",
+  area: "San Angelo, TX"
+};
+
+const BASE44_CUSTOMERS = [
+  { name:"April Collum", phone:"(325) 370-5290", rule:"biweekly", price:80, note:"bagged" },
+  { name:"Woodfin", phone:"(325) 227-9160", rule:"by_request", price:20, note:"bagged" },
+  { name:"Mr. Compton", phone:"(325) 944-3038", rule:"biweekly", price:55, note:"" },
+  { name:"Justin Quigley", phone:"(210) 887-7935", rule:"biweekly", price:45, note:"bagged" },
+  { name:"Sherry Hunt", phone:"(325) 262-0829", rule:"every_3_weeks", price:50, note:"mulched, Mondays" },
+  { name:"Chris Simpson", phone:"(432) 264-8145", rule:"weekly", price:35, note:"mulched" },
+  { name:"Mando", phone:"(432) 557-6330", rule:"biweekly", price:50, note:"mulched" },
+  { name:"Debbie Hardgrave", phone:"(432) 213-4803", rule:"biweekly", price:50, note:"mulched" },
+  { name:"David Dakil", phone:"contact through Debbie", rule:"biweekly", price:70, note:"yard owned by Debbie, mulched" },
+  { name:"Vikki's Neighbor", phone:"contact through Vikki", rule:"biweekly", price:65, note:"mulched" },
+  { name:"Vikki Naylor", phone:"(325) 374-8822", rule:"weekly", price:60, note:"Thursdays, backyard bagged/front mulched" },
+  { name:"Jerry Don Hunt", phone:"(325) 212-0355", rule:"biweekly", price:100, note:"bagged" },
+  { name:"Mimi", phone:"(325) 212-9611", rule:"biweekly", price:0, note:"bagged" },
+  { name:"Melissa Dean", phone:"(325) 234-4512", rule:"weekly", price:45, note:"bagged" },
+  { name:"Ms. Wendland", phone:"(325) 277-6105", rule:"biweekly", price:50, note:"bagged" },
+  { name:"Mrs. Vick's Mom", phone:"(512) 534-6170", rule:"biweekly", price:75, note:"bagged" },
+  { name:"Mr. Miner", phone:"(325) 374-9720", rule:"biweekly", price:35, note:"turf cleanup" },
+  { name:"Shayla", phone:"(856) 625-1530", rule:"biweekly", price:60, note:"mulched" },
+  { name:"Bianca", phone:"(325) 262-1718", rule:"biweekly", price:50, note:"bagged" }
+];
+function ruleLabel(rule){
+  return { weekly:"Weekly service", biweekly:"Every other week", every_3_weeks:"Every 3 weeks", monthly:"Monthly", by_request:"By request" }[rule] || rule;
+}
+async function importBase44Customers(){
+  let added = 0, skipped = 0;
+  BASE44_CUSTOMERS.forEach(function(bc){
+    const exists = customers.some(function(c){ return c.name.trim().toLowerCase()===bc.name.trim().toLowerCase(); });
+    if(exists){ skipped++; return; }
+    const notes = [ruleLabel(bc.rule)];
+    if(bc.price) notes.push('$'+bc.price+' per visit');
+    if(bc.note) notes.push(bc.note);
+    customers.push({ id:'c_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), name:bc.name, contact:bc.phone, notes:notes, profile:null });
+    added++;
+  });
+  await storSet('customers', customers);
+  renderCustomerSelect();
+  renderCustomerList();
+  showToast('Imported ' + added + ' customer' + (added===1?'':'s') + (skipped ? (', skipped ' + skipped + ' already added') : ''));
+}
+
+const DEFAULT_TEMPLATES = [
+  { id:'weather', title:'Weather delay', text:"Hi {{customer_name}}, due to weather we need to push your service back a bit. We'll be out as soon as conditions clear and will keep you posted. Thanks for your patience! \u2014 {{business_name}}, {{phone}}" },
+  { id:'quote', title:'Price quote', text:"Hi {{customer_name}}, thanks for reaching out! Here's a quote for your service \u2014 let me know if you'd like to add anything or schedule a date. \u2014 {{business_name}}, {{phone}}" },
+  { id:'reschedule', title:'Rescheduling', text:"Hi {{customer_name}}, no problem \u2014 let's find a new day that works. What does your schedule look like this week? \u2014 {{business_name}}" },
+  { id:'welcome', title:'First-time customer welcome', text:"Welcome, {{customer_name}}! Thanks for choosing {{business_name}}. We service {{service_area}} and are excited to take care of your yard. Reach us anytime at {{phone}}." },
+  { id:'onmyway', title:'On my way', text:"Hi {{customer_name}}, just letting you know I'm heading your way now and should arrive shortly! \u2014 {{business_name}}" },
+  { id:'thankyou', title:'Thank you', text:"Hi {{customer_name}}, thank you for your business! It means a lot to us \u2014 let us know anytime you need anything. \u2014 {{business_name}}, {{phone}}" },
+  { id:'followup', title:'Follow-up', text:"Hi {{customer_name}}, just checking in after your last service \u2014 how did everything look? Let me know if anything needs touching up. \u2014 {{business_name}}" },
+  { id:'holiday', title:'Holiday greeting', text:"Hi {{customer_name}}, wishing you and your family a great holiday season! Thanks for trusting {{business_name}} with your yard this year. \u2014 {{business_name}}, {{phone}}" },
+  { id:'loyalty', title:'Loyalty discount', text:"Hi {{customer_name}}, as a thank-you for being a loyal customer, we'd like to offer you a discount on your next service. Let us know if you'd like to lock in a date! \u2014 {{business_name}}, {{phone}}" }
+];
+
+async function init(){
+  settings = await storGet('settings', DEFAULT_SETTINGS);
+  customers = await storGet('customers', []);
+  templates = await storGet('templates', DEFAULT_TEMPLATES);
+  let templatesChanged = false;
+  DEFAULT_TEMPLATES.forEach(function(dt){
+    if(!templates.some(function(t){ return t.id===dt.id; })){ templates.push(dt); templatesChanged = true; }
+  });
+  if(templatesChanged) await storSet('templates', templates);
+
+  history = await storGet('history', []);
+
+  document.getElementById('setName').value = settings.name;
+  document.getElementById('setPhone').value = settings.phone;
+  document.getElementById('setArea').value = settings.area;
+  applyHeaderBrand();
+
+  renderCustomerSelect();
+  renderCustomerList();
+  renderTemplates();
+  renderHistory();
+  renderInsights();
+}
+
+function applyHeaderBrand(){
+  document.getElementById('bizNameHeader').textContent = settings.name || 'Smart Client Reply';
+  document.getElementById('bizSubHeader').textContent = settings.area ? ('Dispatch Desk \u00b7 ' + settings.area) : 'Dispatch Desk';
+}
+
+function switchTab(viewId, btn){
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  document.getElementById(viewId).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  if(viewId==='insightsView') renderInsights();
+}
+
+function openSettings(){ document.getElementById('settingsOverlay').classList.add('active'); }
+function closeSettings(){ document.getElementById('settingsOverlay').classList.remove('active'); }
+async function saveSettings(){
+  settings = {
+    name: document.getElementById('setName').value.trim(),
+    phone: document.getElementById('setPhone').value.trim(),
+    area: document.getElementById('setArea').value.trim()
+  };
+  await storSet('settings', settings);
+  applyHeaderBrand();
+  closeSettings();
+  showToast('Business info saved');
+}
+
+function onMsgInput(){
+  const val = document.getElementById('msgInput').value;
+  if(val.trim().length>0 && msgStartTime===null){ msgStartTime = Date.now(); }
+  if(val.trim().length===0){ msgStartTime = null; }
+}
+
+function renderCustomerSelect(){
+  const sel = document.getElementById('custSelect');
+  sel.innerHTML = '<option value="">No customer selected</option>' +
+    customers.map(function(c){ return '<option value="'+c.id+'">'+escapeHtml(c.name)+'</option>'; }).join('');
+  sel.value = activeCustomerId;
+}
+function onCustomerSelect(id){ activeCustomerId = id; renderCustomerList(); }
+
+function renderCustomerList(){
+  const wrap = document.getElementById('custList');
+  if(customers.length===0){ wrap.innerHTML = '<div class="empty">No customers yet. Add one above.</div>'; return; }
+  wrap.innerHTML = customers.map(function(c){
+    const p = c.profile;
+    const notesHtml = (c.notes||[]).map(function(n){ return '<span class="note-chip">'+escapeHtml(n)+'</span>'; }).join('') || '<span class="note-chip">No notes yet</span>';
+    let profileHtml;
+    if(p){
+      const pastIssues = (p.past_issues && p.past_issues.length) ? p.past_issues.map(escapeHtml).join(', ') : 'None logged';
+      const upsellHist = (p.upsell_history && p.upsell_history.length) ? p.upsell_history.map(escapeHtml).join(', ') : 'None logged';
+      profileHtml = ''
+        + '<div class="profile-row"><b>Preferred times</b>' + escapeHtml(p.preferred_times || 'Not enough data yet') + '</div>'
+        + '<div class="profile-row"><b>Typical yard size</b>' + escapeHtml(p.yard_size || 'Not enough data yet') + '</div>'
+        + '<div class="profile-row"><b>Past issues</b>' + pastIssues + '</div>'
+        + '<div class="profile-row"><b>Upsell history</b>' + upsellHist + '</div>';
+    }else{
+      profileHtml = '<span style="color:var(--muted);">No profile yet \u2014 generate a reply for this customer to build one automatically.</span>';
+    }
+    return ''
+      + '<div class="cust-card ' + (c.id===activeCustomerId?'selected':'') + '">'
+      + '  <div class="cust-card-top">'
+      + '    <div>'
+      + '      <div class="cust-name">' + escapeHtml(c.name) + '</div>'
+      + (c.contact ? ('<div class="cust-contact">' + escapeHtml(c.contact) + '</div>') : '')
+      + '      <div class="cust-notes">' + notesHtml + '</div>'
+      + '    </div>'
+      + '    <div class="row" style="flex-direction:column;">'
+      + '      <button class="btn small secondary" onclick="selectCustomerAndGoToReply(\'' + c.id + '\')">Select</button>'
+      + '      <button class="btn small secondary" onclick="deleteCustomer(\'' + c.id + '\')">Delete</button>'
+      + '    </div>'
+      + '  </div>'
+      + '  <button class="btn small ghost" onclick="toggleProfile(\'' + c.id + '\')" style="margin-top:8px;">AI profile</button>'
+      + '  <div class="profile-box" id="profile-' + c.id + '">' + profileHtml + '</div>'
+      + '</div>';
+  }).join('');
+}
+function toggleProfile(id){
+  const box = document.getElementById('profile-'+id);
+  if(box) box.classList.toggle('open');
+}
+function selectCustomerAndGoToReply(id){
+  activeCustomerId = id;
+  renderCustomerSelect();
+  renderCustomerList();
+  document.querySelector('.tab-btn[data-view="replyView"]').click();
+}
+async function addCustomer(){
+  const name = document.getElementById('newCustName').value.trim();
+  const contact = document.getElementById('newCustContact').value.trim();
+  if(!name){ showToast('Enter a name first'); return; }
+  customers.push({ id: 'c_'+Date.now(), name:name, contact:contact, notes:[], profile:null });
+  await storSet('customers', customers);
+  document.getElementById('newCustName').value='';
+  document.getElementById('newCustContact').value='';
+  renderCustomerSelect();
+  renderCustomerList();
+  showToast('Customer added');
+}
+async function deleteCustomer(id){
+  customers = customers.filter(function(c){ return c.id!==id; });
+  if(activeCustomerId===id) activeCustomerId='';
+  await storSet('customers', customers);
+  renderCustomerSelect();
+  renderCustomerList();
+}
+function exportCustomerNotesCSV(){
+  if(customers.length===0){ showToast('No customers to export'); return; }
+  const header = ['Name','Contact','Notes','Preferred Times','Typical Yard Size','Past Issues','Upsell History'];
+  function csvField(v){ return '"' + String(v||'').replace(/"/g,'""') + '"'; }
+  const rows = customers.map(function(c){
+    const p = c.profile || {};
+    return [
+      csvField(c.name),
+      csvField(c.contact),
+      csvField((c.notes||[]).join('; ')),
+      csvField(p.preferred_times),
+      csvField(p.yard_size),
+      csvField((p.past_issues||[]).join('; ')),
+      csvField((p.upsell_history||[]).join('; '))
+    ].join(',');
+  });
+  const csv = [header.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'customer-notes.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('CSV exported');
+}
+
+function fillTokens(text){
+  const cust = customers.find(function(c){ return c.id===activeCustomerId; });
+  return text
+    .split('{{business_name}}').join(settings.name || '[Business name]')
+    .split('{{phone}}').join(settings.phone || '[Phone]')
+    .split('{{service_area}}').join(settings.area || '[Service area]')
+    .split('{{customer_name}}').join(cust ? cust.name : '[Customer]');
+}
+function renderTemplates(){
+  const wrap = document.getElementById('tmplList');
+  wrap.innerHTML = templates.map(function(t){
+    return '<div class="tmpl-card">'
+      + '<div class="tmpl-title">' + escapeHtml(t.title) + '</div>'
+      + '<div class="tmpl-text">' + escapeHtml(t.text) + '</div>'
+      + '<button class="btn small secondary" onclick="useTemplate(\'' + t.id + '\')">Load into reply</button>'
+      + '</div>';
+  }).join('');
+}
+function useTemplate(id){
+  const t = templates.find(function(x){ return x.id===id; });
+  if(!t) return;
+  const filled = fillTokens(t.text);
+  document.querySelector('.tab-btn[data-view="replyView"]').click();
+  renderTemplateResult(filled, t.title);
+  showToast('Template loaded');
+}
+function renderTemplateResult(text, title){
+  document.getElementById('errorSlot').innerHTML='';
+  document.getElementById('resultSlot').innerHTML =
+    '<div class="ticket">'
+    + '<div class="ticket-head"><span>TEMPLATE \u00b7 ' + escapeHtml(title).toUpperCase() + '</span><span class="ticket-stamp">READY</span></div>'
+    + '<div class="ticket-body">'
+    + '  <div class="ticket-section">'
+    + '    <span class="ticket-label">Reply (editable)</span>'
+    + '    <div class="reply-box" contenteditable="true" id="mainReplyBox">' + escapeHtml(text) + '</div>'
+    + '  </div>'
+    + '  <div class="row">' + quickInsertButtons() + '<button class="btn small secondary" onclick="copyReply()">Copy reply</button></div>'
+    + '</div></div>';
+}
+
+function renderHistory(){
+  const wrap = document.getElementById('histList');
+  const filterEl = document.getElementById('histTagFilter');
+  const filterTag = filterEl ? filterEl.value : '';
+  let list = history.slice().reverse();
+  if(filterTag) list = list.filter(function(h){ return h.tag===filterTag; });
+  if(list.length===0){ wrap.innerHTML='<div class="empty">No replies match.</div>'; return; }
+  wrap.innerHTML = list.map(function(h){
+    const badges = ''
+      + (h.tag ? ('<span class="badge tag">' + escapeHtml(TAG_LABELS[h.tag]||h.tag) + '</span>') : '')
+      + (h.sentiment ? ('<span class="badge ' + (h.sentiment==='upset'?'upset':(h.sentiment==='happy'?'happy':'neutral')) + '">' + escapeHtml(h.sentiment) + '</span>') : '')
+      + (h.tone ? ('<span class="badge ' + h.tone + '">' + escapeHtml(h.tone) + '</span>') : '');
+    return '<div class="hist-item">'
+      + '<div class="hist-top"><span>' + escapeHtml(h.customerName||'No customer') + ' \u00b7 ' + new Date(h.time).toLocaleString() + '</span>' + (h.replySeconds ? ('<span>Replied in ' + h.replySeconds + 's</span>') : '') + '</div>'
+      + '<div class="hist-badges">' + badges + '</div>'
+      + '<div class="hist-msg">"' + escapeHtml(truncate(h.message,90)) + '"</div>'
+      + '<div class="hist-reply">' + escapeHtml(truncate(h.reply,140)) + '</div>'
+      + '<button class="btn small secondary" style="margin-top:6px;" onclick=\'reopenHistory(' + JSON.stringify(h.id) + ')\'>Reopen</button>'
+      + '</div>';
+  }).join('');
+}
+function reopenHistory(id){
+  const h = history.find(function(x){ return x.id===id; });
+  if(!h) return;
+  document.querySelector('.tab-btn[data-view="replyView"]').click();
+  document.getElementById('errorSlot').innerHTML='';
+  document.getElementById('resultSlot').innerHTML =
+    '<div class="ticket">'
+    + '<div class="ticket-head"><span>FROM HISTORY \u00b7 ' + new Date(h.time).toLocaleString() + '</span><span class="ticket-stamp">SAVED</span></div>'
+    + '<div class="ticket-body">'
+    + '  <div class="ticket-section">'
+    + '    <span class="ticket-label">Reply (editable)</span>'
+    + '    <div class="reply-box" contenteditable="true" id="mainReplyBox">' + escapeHtml(h.reply) + '</div>'
+    + '  </div>'
+    + '  <div class="row">' + quickInsertButtons() + '<button class="btn small secondary" onclick="copyReply()">Copy reply</button></div>'
+    + '</div></div>';
+}
+async function pushHistory(entry){
+  entry.id = 'h_'+Date.now();
+  history.push(entry);
+  if(history.length>20) history = history.slice(history.length-20);
+  await storSet('history', history);
+  renderHistory();
+  renderInsights();
+}
+
+function quickInsertButtons(){
+  return ''
+    + '<button class="chip" onclick="insertToken(\'' + escapeAttr(settings.name||'[Business name]') + '\')">+ Business name</button>'
+    + '<button class="chip" onclick="insertToken(\'' + escapeAttr(settings.phone||'[Phone]') + '\')">+ Phone</button>'
+    + '<button class="chip" onclick="insertToken(\'' + escapeAttr(settings.area||'[Service area]') + '\')">+ Service area</button>';
+}
+function quickActionButtons(){
+  return ''
+    + '<button class="chip action" onclick="quickAction(\'price\')">Send price</button>'
+    + '<button class="chip action" onclick="quickAction(\'confirm\')">Confirm service</button>'
+    + '<button class="chip action" onclick="quickAction(\'apologize\')">Apologize politely</button>';
+}
+function quickAction(kind){
+  const box = document.getElementById('mainReplyBox');
+  if(!box) return;
+  let text = '';
+  if(kind==='price'){
+    text = (currentResult && currentResult.pricing && currentResult.pricing.price_reply) || "Here's our pricing \u2014 let me know if you'd like a custom quote for your yard.";
+  }else if(kind==='confirm'){
+    text = "You're all set \u2014 I've got you confirmed for your scheduled service. See you then!";
+  }else if(kind==='apologize'){
+    text = "I'm really sorry for the inconvenience \u2014 let's get this made right for you.";
+  }
+  box.focus();
+  document.execCommand('insertText', false, (box.innerText.trim() ? ' ' : '') + text);
+}
+function insertToken(text){
+  const box = document.getElementById('mainReplyBox');
+  if(!box) return;
+  box.focus();
+  document.execCommand('insertText', false, ' ' + text);
+}
+function copyReply(){
+  const box = document.getElementById('mainReplyBox');
+  if(!box) return;
+  navigator.clipboard.writeText(box.innerText).then(function(){ showToast('Copied to clipboard'); });
+}
+
+async function callClaude(systemPrompt, userPrompt){
+  const response = await fetch("/api/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ system: systemPrompt, prompt: userPrompt })
+  });
+  if(!response.ok) throw new Error('API error ' + response.status);
+  const data = await response.json();
+  const textBlock = (data.content||[]).find(function(b){ return b.type==='text'; });
+  if(!textBlock) throw new Error('No text in response');
+  let clean = textBlock.text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+  return JSON.parse(clean);
+}
+
+async function generateReply(){
+  const msg = document.getElementById('msgInput').value.trim();
+  const errorSlot = document.getElementById('errorSlot');
+  const resultSlot = document.getElementById('resultSlot');
+  errorSlot.innerHTML = '';
+  if(!msg){ errorSlot.innerHTML = errorHtml('Paste a customer message first.'); return; }
+
+  const cust = customers.find(function(c){ return c.id===activeCustomerId; });
+  const genBtn = document.getElementById('genBtn');
+  genBtn.disabled = true;
+  genBtn.innerHTML = '<span class="spinner"></span>Generating\u2026';
+  resultSlot.innerHTML = '';
+
+  const system = 'You are a reply assistant for a small lawn care business. Always respond with ONLY valid JSON, no markdown fences, no commentary, matching exactly this schema:\n'
+    + '{\n'
+    + ' "understood_as": "one short sentence explaining what the customer is asking for",\n'
+    + ' "customer_tone": "calm|neutral|confused|urgent|frustrated|angry",\n'
+    + ' "sentiment": "happy|neutral|upset",\n'
+    + ' "tag": "pricing|complaint|general_info|new_customer|scheduling|other",\n'
+    + ' "suggested_reply_tone": "professional|casual|firm",\n'
+    + ' "reply_professional": "full ready-to-send reply, professional tone",\n'
+    + ' "reply_casual": "full ready-to-send reply, casual friendly tone",\n'
+    + ' "reply_firm": "full ready-to-send reply, firm/direct tone",\n'
+    + ' "is_pricing_question": true or false,\n'
+    + ' "pricing": { "service_identified": "short service name or null", "price_reply": "a clear price-focused reply or null", "upsell_suggestions": ["short suggestion", "..."] } or null\n'
+    + '}\n'
+    + 'All three replies must fully answer the customer\'s message and be ready to send as-is, just in a different tone. Keep replies concise (2-5 sentences). If is_pricing_question is false, set pricing to null. "tag" should reflect the primary purpose of the message (use new_customer if they have never mentioned a service before, complaint if something went wrong, scheduling for date/time changes, general_info for anything else that is not pricing/complaint/scheduling/new-customer).';
+
+  const contextLines = [];
+  if(settings.name) contextLines.push('Business name: ' + settings.name);
+  if(settings.phone) contextLines.push('Business phone: ' + settings.phone);
+  if(settings.area) contextLines.push('Service area: ' + settings.area);
+  if(cust){
+    contextLines.push('Customer name: ' + cust.name);
+    if(cust.notes && cust.notes.length) contextLines.push('Known notes about this customer: ' + cust.notes.join('; '));
+    if(cust.profile){
+      if(cust.profile.preferred_times) contextLines.push('Preferred times: ' + cust.profile.preferred_times);
+      if(cust.profile.yard_size) contextLines.push('Typical yard size: ' + cust.profile.yard_size);
+    }
+  }
+
+  const userPrompt = contextLines.join('\n') + '\n\nCustomer message:\n"""' + msg + '"""';
+
+  try{
+    const data = await callClaude(system, userPrompt);
+    currentResult = data;
+    activeToneKey = 'reply_' + (data.suggested_reply_tone || 'professional');
+    renderResult(data, cust, msg);
+
+    let replySeconds = null;
+    if(msgStartTime){ replySeconds = Math.max(1, Math.round((Date.now()-msgStartTime)/1000)); }
+    msgStartTime = null;
+
+    await pushHistory({
+      time: Date.now(),
+      customerName: cust ? cust.name : '',
+      customerId: cust ? cust.id : '',
+      message: msg,
+      reply: data[activeToneKey] || data.reply_professional,
+      tone: data.customer_tone,
+      sentiment: data.sentiment,
+      tag: data.tag,
+      replySeconds: replySeconds,
+      pricingOffered: !!(data.is_pricing_question && data.pricing && data.pricing.upsell_suggestions && data.pricing.upsell_suggestions.length),
+      upsellOutcome: null
+    });
+
+    if(cust){ updateCustomerProfile(cust, msg, data); }
+
+  }catch(err){
+    console.error(err);
+    errorSlot.innerHTML = errorHtml("Couldn't generate a reply right now. Check your connection and try again.");
+  }finally{
+    genBtn.disabled = false;
+    genBtn.textContent = 'Generate Reply';
+  }
+}
+
+function errorHtml(msg){
+  return '<div class="error-banner"><b>Error:</b> ' + escapeHtml(msg) + '</div>';
+}
+
+function renderResult(data, cust, originalMsg){
+  function toneLabel(t){ return t.charAt(0).toUpperCase()+t.slice(1); }
+  const resultSlot = document.getElementById('resultSlot');
+
+  let priceHtml = '';
+  if(data.is_pricing_question && data.pricing){
+    let upsellHtml = '';
+    if(data.pricing.upsell_suggestions && data.pricing.upsell_suggestions.length){
+      upsellHtml = '<span class="ticket-label">Upsell ideas</span>'
+        + '<div class="row">' + data.pricing.upsell_suggestions.map(function(u){ return '<span class="chip">' + escapeHtml(u) + '</span>'; }).join('') + '</div>'
+        + '<div class="outcome-row"><span>Did they take the upsell?</span>'
+        + '<button class="btn small secondary" onclick="logUpsellOutcome(\'accepted\')">Accepted</button>'
+        + '<button class="btn small secondary" onclick="logUpsellOutcome(\'declined\')">Declined</button></div>';
+    }
+    priceHtml = '<div class="ticket-section"><div class="price-card">'
+      + '<div class="service">Service: ' + escapeHtml(data.pricing.service_identified || 'Unspecified') + '</div>'
+      + '<div style="font-size:13.5px;margin-bottom:8px;">' + escapeHtml(data.pricing.price_reply || '') + '</div>'
+      + upsellHtml
+      + '</div></div>';
+  }
+
+  const toneTabsHtml = ['professional','casual','firm'].map(function(t){
+    const active = ('reply_'+t===activeToneKey) ? 'active' : '';
+    return '<button class="tone-tab ' + active + '" onclick="switchTone(\'' + t + '\')">' + toneLabel(t) + '</button>';
+  }).join('');
+
+  resultSlot.innerHTML = '<div class="ticket">'
+    + '<div class="ticket-head"><span>WORK ORDER \u00b7 ' + new Date().toLocaleString() + '</span><span class="ticket-stamp">GENERATED</span></div>'
+    + '<div class="ticket-body">'
+    + '  <div class="ticket-section"><span class="ticket-label">What they are asking</span><div style="font-size:14px;">' + escapeHtml(data.understood_as) + '</div></div>'
+    + '  <div class="ticket-section row">'
+    + '    <span class="badge ' + data.customer_tone + '">Tone: ' + toneLabel(data.customer_tone) + '</span>'
+    + '    <span class="badge ' + (data.sentiment==='upset'?'upset':(data.sentiment==='happy'?'happy':'neutral')) + '">Sentiment: ' + toneLabel(data.sentiment||'neutral') + '</span>'
+    + '    <span class="badge tag">' + escapeHtml(TAG_LABELS[data.tag]||data.tag||'Other') + '</span>'
+    + '    <span class="badge tone">Suggested: ' + toneLabel(data.suggested_reply_tone) + '</span>'
+    + '  </div>'
+    + '  <div class="ticket-section">'
+    + '    <span class="ticket-label">Reply (editable)</span>'
+    + '    <div class="tone-tabs" id="toneTabs">' + toneTabsHtml + '</div>'
+    + '    <div class="reply-box" contenteditable="true" id="mainReplyBox">' + escapeHtml(data[activeToneKey] || data.reply_professional) + '</div>'
+    + '  </div>'
+    + priceHtml
+    + '  <div class="ticket-section"><span class="ticket-label">Quick actions</span><div class="row">' + quickActionButtons() + '</div></div>'
+    + '  <div class="ticket-section row">' + quickInsertButtons() + '<button class="btn small secondary" onclick="copyReply()">Copy reply</button></div>'
+    + '</div></div>';
+  window._lastData = data;
+}
+function switchTone(tone){
+  activeToneKey = 'reply_' + tone;
+  document.querySelectorAll('.tone-tab').forEach(function(b){ b.classList.remove('active'); });
+  event.target.classList.add('active');
+  const box = document.getElementById('mainReplyBox');
+  if(box && window._lastData) box.textContent = window._lastData[activeToneKey];
+}
+async function logUpsellOutcome(outcome){
+  if(history.length===0) return;
+  history[history.length-1].upsellOutcome = outcome;
+  await storSet('history', history);
+  renderInsights();
+  showToast(outcome==='accepted' ? 'Logged: accepted' : 'Logged: declined');
+}
+
+async function updateCustomerProfile(cust, msg, data){
+  const system = 'You maintain a short reference profile for a lawn care customer. Respond with ONLY valid JSON:\n'
+    + '{"notes": ["short note", "..."], "profile": {"preferred_times": "short phrase or empty string", "yard_size": "short phrase or empty string", "past_issues": ["short phrase", "..."], "upsell_history": ["short phrase", "..."]}}\n'
+    + '"notes" is max 6 short chips (under 6 words each), merged with existing, no duplicates, drop stale/contradicted ones.\n'
+    + '"profile.preferred_times" and "profile.yard_size" should only be set if there is real evidence in the messages; otherwise keep the existing value or leave as empty string.\n'
+    + '"profile.past_issues" logs real problems mentioned (e.g. gate left open, missed a week), max 5.\n'
+    + '"profile.upsell_history" logs services the customer has asked about or been offered, max 5.';
+  const userPrompt = 'Existing notes: ' + JSON.stringify(cust.notes||[])
+    + '\nExisting profile: ' + JSON.stringify(cust.profile||{})
+    + '\nNew customer message: "' + msg + '"'
+    + '\nWhat this message was about: ' + data.understood_as
+    + '\nWas this a pricing question: ' + data.is_pricing_question
+    + '\n' + (data.pricing ? ('Service discussed: ' + (data.pricing.service_identified||'')) : '')
+    + '\nReturn the updated notes and profile.';
+  try{
+    const result = await callClaude(system, userPrompt);
+    const idx = customers.findIndex(function(c){ return c.id===cust.id; });
+    if(idx>-1){
+      if(result && Array.isArray(result.notes)) customers[idx].notes = result.notes;
+      if(result && result.profile) customers[idx].profile = result.profile;
+      await storSet('customers', customers);
+      renderCustomerList();
+    }
+  }catch(e){
+    console.error('profile update failed', e);
+  }
+}
+
+function renderInsights(){
+  const overview = document.getElementById('insightOverview');
+  const tagsEl = document.getElementById('insightTags');
+  const sentimentEl = document.getElementById('insightSentiment');
+  const upsellEl = document.getElementById('insightUpsell');
+  if(!overview) return;
+
+  const total = history.length;
+  const withTime = history.filter(function(h){ return h.replySeconds; });
+  const avgSeconds = withTime.length ? Math.round(withTime.reduce(function(s,h){ return s+h.replySeconds; },0)/withTime.length) : null;
+
+  overview.innerHTML = '<div class="insight-stat"><span class="label">Replies generated (last 20 kept)</span><span class="num">' + total + '</span></div>'
+    + '<div class="insight-stat"><span class="label">Average reply time</span><span class="num">' + (avgSeconds!==null ? avgSeconds+'s' : '\u2014') + '</span></div>';
+  if(avgSeconds===null){
+    overview.innerHTML += '<p class="hint" style="margin-top:8px;">Timed from when you start typing a message to when you generate a reply \u2014 starts tracking from your next message.</p>';
+  }
+
+  const tagCounts = {};
+  history.forEach(function(h){ if(h.tag) tagCounts[h.tag] = (tagCounts[h.tag]||0)+1; });
+  const tagEntries = Object.entries(tagCounts).sort(function(a,b){ return b[1]-a[1]; });
+  tagsEl.innerHTML = tagEntries.length ? tagEntries.map(function(entry){
+    const tag = entry[0], count = entry[1];
+    return '<div class="bar-row"><div class="bar-label"><span>' + escapeHtml(TAG_LABELS[tag]||tag) + '</span><span>' + count + '</span></div>'
+      + '<div class="bar-track"><div class="bar-fill" style="width:' + Math.round(count/total*100) + '%"></div></div></div>';
+  }).join('') : '<div class="empty">No replies yet.</div>';
+
+  const sentCounts = { happy:0, neutral:0, upset:0 };
+  history.forEach(function(h){ if(h.sentiment && sentCounts.hasOwnProperty(h.sentiment)) sentCounts[h.sentiment]++; });
+  const sentTotal = sentCounts.happy+sentCounts.neutral+sentCounts.upset;
+  sentimentEl.innerHTML = sentTotal ? ['happy','neutral','upset'].map(function(s){
+    return '<div class="bar-row"><div class="bar-label"><span>' + toneCap(s) + '</span><span>' + sentCounts[s] + '</span></div>'
+      + '<div class="bar-track"><div class="bar-fill" style="width:' + Math.round(sentCounts[s]/sentTotal*100) + '%"></div></div></div>';
+  }).join('') : '<div class="empty">No replies yet.</div>';
+
+  const offered = history.filter(function(h){ return h.pricingOffered; });
+  const logged = offered.filter(function(h){ return h.upsellOutcome; });
+  const accepted = logged.filter(function(h){ return h.upsellOutcome==='accepted'; });
+  const rate = logged.length ? Math.round(accepted.length/logged.length*100) : null;
+  upsellEl.innerHTML = '<div class="insight-stat"><span class="label">Upsells offered</span><span class="num">' + offered.length + '</span></div>'
+    + '<div class="insight-stat"><span class="label">Outcomes logged</span><span class="num">' + logged.length + '</span></div>'
+    + '<div class="insight-stat"><span class="label">Acceptance rate</span><span class="num">' + (rate!==null ? rate+'%' : '\u2014') + '</span></div>';
+}
+function toneCap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function escapeHtml(str){
+  if(str===undefined || str===null) return '';
+  return String(str).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; });
+}
+function escapeAttr(str){ return escapeHtml(str).replace(/`/g,''); }
+function truncate(str,n){ return str && str.length>n ? str.slice(0,n)+'\u2026' : (str||''); }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 1800);
+}
+
+init();
+</script>
+</body>
+</html>
